@@ -9,7 +9,7 @@ enum class Choose(val value: Int) {
     Scissors(3)
 }
 
-val ChooseMapper = mapOf<String, Choose>(
+val ChooseMapper = mapOf(
     "A" to Choose.Rock,
     "X" to Choose.Rock,
 
@@ -18,6 +18,18 @@ val ChooseMapper = mapOf<String, Choose>(
 
     "C" to Choose.Scissors,
     "Z" to Choose.Scissors
+)
+
+val WinMapper = mapOf(
+    Choose.Rock to Choose.Paper,
+    Choose.Paper to Choose.Scissors,
+    Choose.Scissors to Choose.Rock
+)
+
+val LoseMapper = mapOf(
+     Choose.Paper to Choose.Rock,
+     Choose.Scissors to Choose.Paper,
+     Choose.Rock to Choose.Scissors
 )
 
 fun parseTurn(value: String): Pair<Choose, Choose>? {
@@ -43,9 +55,7 @@ fun costTurn(turn : Pair<Choose, Choose>) : Int {
         return value + 3
     }
 
-    if ((turn.first == Choose.Rock && turn.second == Choose.Paper) ||
-        (turn.first == Choose.Paper && turn.second == Choose.Scissors) ||
-        (turn.first == Choose.Scissors && turn.second == Choose.Rock)) {
+    if (WinMapper[turn.first] == turn.second) {
         return value + 6
     }
 
@@ -57,12 +67,30 @@ fun main(args: Array<String>) {
     val file = File(resource.toURI())
 
     var total = 0
+    var total2 = 0
 
     file.forEachLine {
         val turn = parseTurn(it) ?: throw Exception("parse error: $it")
-
         total += costTurn(turn)
+
+        when {
+            // need lose
+            turn.second == ChooseMapper["X"] -> {
+                total2 += costTurn(turn.first to LoseMapper[turn.first]!!)
+            }
+
+            // need to end the round in a draw
+            turn.second == ChooseMapper["Y"] -> {
+                total2 += costTurn(turn.first to turn.first)
+            }
+
+            // need win
+            turn.second == ChooseMapper["Z"] -> {
+                total2 += costTurn(turn.first to WinMapper[turn.first]!!)
+            }
+        }
     }
 
     println("Score: $total")
+    println("Score2: $total2")
 }
