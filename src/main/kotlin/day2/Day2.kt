@@ -1,5 +1,6 @@
 package day2
 
+import utils.Resource
 import java.io.File
 
 class Day2 {}
@@ -63,8 +64,7 @@ fun costTurn(turn : Pair<Choose, Choose>) : Int {
 }
 
 fun main(args: Array<String>) {
-    val resource = Day2::class.java.classLoader.getResource("day2/input") ?: return
-    val file = File(resource.toURI())
+    val file =  Resource.getFile("day2/input")?: return
 
     var total = 0
     var total2 = 0

@@ -1,12 +1,12 @@
 package day1
 
+import utils.Resource
 import java.io.File
 
 class Day1
 
 fun main(args: Array<String>) {
-    val resource = Day1::class.java.classLoader.getResource("day1/input") ?: return
-    val file = File(resource.toURI())
+    val file =  Resource.getFile("day1/input")?: return
 
     val counter = Counter()
 

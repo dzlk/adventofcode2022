@@ -1,5 +1,6 @@
 package day3
 
+import utils.Resource
 import java.io.File
 
 class Day3 {
@@ -19,8 +20,7 @@ fun makeRucksack(value: String): Pair<Set<Char>, Set<Char>> {
 
 
 fun main(args: Array<String>) {
-    val resource = Day3::class.java.classLoader.getResource("day3/input") ?: return
-    val file = File(resource.toURI())
+    val file =  Resource.getFile("day3/input")?: return
 
     val priorityCounter = PriorityCounter()
     val groupPriorityCounter = GroupPriorityCounter()
