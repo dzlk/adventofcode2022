@@ -10,8 +10,8 @@ data class Section(val start: Int, val end: Int)
 
 operator fun Section.contains(other: Section): Boolean = this.start <= other.start && this.end >= other.end
 fun Section.overlaps(other: Section): Boolean =
-    (this.start <= other.start && this.end >= other.start) ||
-    (this.start <= other.end && this.end >= other.end)
+    other.start in this.start..this.end ||
+            other.end in this.start..this.end
 
 fun parseSection(value: String): Section? {
     val values = value.split("-")
@@ -51,7 +51,7 @@ fun main() {
     var overlapsPairs = 0
 
     file.forEachLine {
-        val pair = parseSections(it)?: throw Exception("input format is bad")
+        val pair = parseSections(it) ?: throw Exception("input format is bad")
 
         if (pair.first in pair.second || pair.second in pair.first) {
             badPairs++
