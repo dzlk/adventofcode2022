@@ -29,7 +29,7 @@ fun main() {
         }
 
         val cmd = CommandMove.parse(it) ?: throw Exception("wrong command")
-        storage?.move(cmd)
+        storage?.moveBulk(cmd)
     }
 
     storage?.print()
@@ -41,6 +41,7 @@ data class CommandMove(val count: Int, val from: Int, val to: Int) {
     fun print() {
         println("$count crates $from --> $to")
     }
+
     companion object {
         private val cmdRe = """move (\d+) from (\d+) to (\d+)""".toRegex()
         fun parse(value: String): CommandMove? {
@@ -75,15 +76,36 @@ class Storage(private val size: Int) {
         }
     }
 
-    fun move(cmd: CommandMove) {
+    private fun checkCmd(cmd: CommandMove) {
         val from = cmd.from - 1
         val to = cmd.to - 1
         assert(from <= size && to <= size) { "wrong position in command: ${cmd.print()}" }
         assert(cmd.count <= crates[from].size) { "wrong count in command: ${cmd.print()}" }
+    }
 
-        (0 until cmd.count).forEach {
-            crates[to].addLast(
-                crates[from].removeLast()
+    fun moveByOne(cmd: CommandMove) {
+        checkCmd(cmd)
+        (0 until cmd.count).forEach { _ ->
+            crates[cmd.to - 1].addLast(
+                crates[cmd.from - 1].removeLast()
+            )
+        }
+    }
+
+    fun moveBulk(cmd: CommandMove) {
+        checkCmd(cmd)
+
+        val tmp = ArrayDeque<String>()
+
+        (0 until cmd.count).forEach { _ ->
+            tmp.addLast(
+                crates[cmd.from - 1].removeLast()
+            )
+        }
+
+        while (tmp.isNotEmpty()) {
+            crates[cmd.to - 1].addLast(
+                tmp.removeLast()
             )
         }
     }
@@ -121,7 +143,6 @@ class Storage(private val size: Int) {
     }
 
     companion object {
-        private val crateRe = """\[(\d+)\]""".toRegex()
         fun create(deque: ArrayDeque<String>): Storage? {
             var storage: Storage? = null
             while (deque.size > 0) {
