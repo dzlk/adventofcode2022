@@ -5,50 +5,75 @@ import utils.Resource
 class Day8 {
 }
 
+data class Tree(
+    val value: Int,
+    var tall: Boolean = false,
+
+    var left: Int = 0,
+    var right: Int = 0,
+    var top: Int = 0,
+    var bottom: Int = 0
+)
+
+class Grid() {
+    private val data: MutableList<MutableList<Tree>> = mutableListOf<MutableList<Tree>>()
+
+    fun count(): Int = data.count()
+    fun isSquare(): Boolean = data.count() == (data.getOrNull(0)?.count() ?: 0)
+
+    fun addLineFromString(line: String) {
+        val newLine = mutableListOf<Tree>()
+        line.forEach { ch ->
+            newLine.add(Tree(ch.toString().toInt()))
+        }
+        data.add(newLine)
+    }
+
+    fun get(i: Int, j: Int): Tree = data[i][j]
+
+    fun lGet(i: Int, j: Int): Tree = data[j][i]
+    fun rGet(i: Int, j: Int): Tree = data[j][count() - 1 - i]
+    fun tGet(i: Int, j: Int): Tree = data[i][j]
+    fun bGet(i: Int, j: Int): Tree = data[count() - 1 - i][j]
+}
+
+
 fun main() {
     val file = Resource.getFile("day8/input") ?: throw Exception("Input not found")
 
-    val grid = mutableListOf<MutableList<Pair<Int, Boolean>>>()
+    val grid = Grid()
 
     file.forEachLine {
-        val line = mutableListOf<Pair<Int, Boolean>>()
-        it.forEach {
-            line.add(it.toString().toInt() to false)
-        }
-
-        if (grid.isNotEmpty() && grid[0].count() != it.count()) {
-            throw Exception("Wrong input")
-        }
-        grid.add(line)
+        grid.addLineFromString(it)
     }
 
     val size = grid.count()
-    assert(size == grid[0].count()) { "Input not grid" }
+    assert(grid.isSquare()) { "Input not grid" }
 
 
     var trees = 0
-    val compareAndCountTree = { prev: Int, i: Int, j: Int ->
-        if (prev < grid[i][j].first) {
-            if (!grid[i][j].second) {
+    val compareAndCountTree = { prev: Int, tree: Tree ->
+        if (prev < tree.value) {
+            if (!tree.tall) {
                 trees++
-                grid[i][j] = grid[i][j].first to true
+                tree.tall = true
             }
         }
 
-        prev.coerceAtLeast(grid[i][j].first)
+        prev.coerceAtLeast(tree.value)
     }
 
     (1 until size - 1).forEach { j ->
-        var left = grid[j][0].first
-        var right = grid[j][size - 1].first
-        var top = grid[0][j].first
-        var bottom = grid[size - 1][j].first
+        var left = grid.lGet(0, j).value
+        var right = grid.rGet(0, j).value
+        var top = grid.tGet(0, j).value
+        var bottom = grid.bGet(0, j).value
 
         (1 until size - 1).forEach { i ->
-            left = compareAndCountTree(left, j, i)
-            right = compareAndCountTree(right, j, size - 1 - i)
-            top = compareAndCountTree(top, i, j)
-            bottom = compareAndCountTree(bottom, size - 1 - i, j)
+            left = compareAndCountTree(left, grid.lGet(i, j))
+            right = compareAndCountTree(right, grid.rGet(i, j))
+            top = compareAndCountTree(top, grid.tGet(i, j))
+            bottom = compareAndCountTree(bottom, grid.bGet(i, j))
         }
     }
 
