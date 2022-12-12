@@ -12,11 +12,14 @@ data class Tree(
     var left: Int = 0,
     var right: Int = 0,
     var top: Int = 0,
-    var bottom: Int = 0
-)
+    var bottom: Int = 0,
+) {
+    val cost: Int
+        get() = left * right * top * bottom
+}
 
 class Grid() {
-    private val data: MutableList<MutableList<Tree>> = mutableListOf<MutableList<Tree>>()
+    private val data: MutableList<MutableList<Tree>> = mutableListOf()
 
     fun count(): Int = data.count()
     fun isSquare(): Boolean = data.count() == (data.getOrNull(0)?.count() ?: 0)
@@ -79,5 +82,54 @@ fun main() {
 
     println("trees: $trees")
     println("trees total: ${trees + (4 * size - 4)}")
+
+    val countDistance: (MutableMap<Int, Int>, Tree, Int) -> Int = { map, tree, index ->
+        val distance = map
+            .filterKeys { it >= tree.value }
+            .toSortedMap(compareBy { map[it] })
+            .values
+            .lastOrNull() ?: 0
+
+        map[tree.value] = index
+
+        index - distance
+    }
+
+    (1 until size - 1).forEach { j ->
+        val leftMap = mutableMapOf<Int, Int>()
+        val rightMap = mutableMapOf<Int, Int>()
+        val topMap = mutableMapOf<Int, Int>()
+        val bottomMap = mutableMapOf<Int, Int>()
+
+        (1 until size - 1).forEach { i ->
+            grid.lGet(i, j).let {
+                it.left = countDistance(leftMap, it, i)
+            }
+
+            grid.rGet(i, j).let {
+                it.right = countDistance(rightMap, it, i)
+            }
+
+            grid.tGet(i, j).let {
+                it.top = countDistance(topMap, it, i)
+            }
+
+            grid.bGet(i, j).let {
+                it.bottom = countDistance(bottomMap, it, i)
+            }
+        }
+    }
+
+    var bestTree: Tree = grid.get(0, 0)
+    (1 until size - 1).forEach { j ->
+        (1 until size - 1).forEach { i ->
+            val tree = grid.get(i, j)
+            if (bestTree.cost < tree.cost) {
+                bestTree = tree
+            }
+        }
+    }
+
+    println("Best tree: $bestTree with cost: ${bestTree.cost}")
 }
 
