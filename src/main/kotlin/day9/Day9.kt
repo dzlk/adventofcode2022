@@ -8,7 +8,7 @@ class Day9 {}
 fun main() {
     val file = Resource.getFile("day9/input") ?: throw Exception("No file input")
 
-    val rope = Rope()
+    val rope = Rope(9)
     rope.printMoving = false
 
 
@@ -44,22 +44,21 @@ data class Cmd(
     val value: Int
 )
 
-data class Point(var x: Int = 0, var y: Int = 0) {
-}
+data class Point(var x: Int = 0, var y: Int = 0)
 
 data class Edge(
     var first: Point = Point(0, 0),
     var second: Point = Point(0, 0)
 )
 
-class Rope() {
+class Rope(private val tailLength: Int) {
     private val start = Point()
 
     private var edge = Edge()
     private var head = Point()
-    private var tail = Point()
+    private val tail = List(tailLength) { Point() }
 
-    private val trail = mutableSetOf(start)
+    private val trail = mutableSetOf<Point>()
 
     var printMoving = true
 
@@ -109,30 +108,38 @@ class Rope() {
     }
 
     private fun moveTail() {
-        val diffX = head.x - tail.x
-        val diffY = head.y - tail.y
+        var prevPoint = head
 
-        if (abs(diffX) == 2) {
-            tail.x += diffX / 2
+        tail.forEachIndexed { index, it ->
+            val diffX = prevPoint.x - it.x
+            val diffY = prevPoint.y - it.y
 
-            if (abs(diffY) == 1) {
-                tail.y += diffY
+            if (abs(diffX) == 2) {
+                it.x += diffX / 2
+
+                if (abs(diffY) == 1) {
+                    it.y += diffY
+                }
             }
+
+            if (abs(diffY) == 2) {
+                it.y += diffY / 2
+
+                if (abs(diffX) == 1) {
+                    it.x += diffX
+                }
+            }
+
+            prevPoint = it
         }
 
-        if (abs(diffY) == 2) {
-            tail.y += diffY / 2
-
-            if (abs(diffX) == 1) {
-                tail.x += diffX
-            }
-        }
-
-        trail.add(tail.copy())
+        trail.add(prevPoint.copy())
     }
 
     fun printMoves(showTrail: Boolean = false) {
         val defSymbol = "."
+
+        val tailMap = tail.mapIndexed { index, point -> point to (index + 1).toString() }.toMap()
 
         println("-".repeat(10))
         for (y in edge.first.y downTo edge.second.y) {
@@ -151,7 +158,7 @@ class Rope() {
                     print(
                         when (point) {
                             head -> "H"
-                            tail -> "T"
+                            in tailMap -> tailMap[point]
                             start -> "s"
                             else -> defSymbol
                         }
